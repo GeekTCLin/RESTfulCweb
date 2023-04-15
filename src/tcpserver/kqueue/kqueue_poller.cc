@@ -1,5 +1,3 @@
-//#ifdef MACOS
-
 #include "kqueue_poller.h"
 #include "timer.h"
 #include "event.h"
@@ -20,7 +18,16 @@ KqueuePoller::~KqueuePoller() {
 
 Time KqueuePoller::Poll(int timeout, std::vector<Event *>& activeEvents) {
     
-    int ret = kevent(kqfd_, NULL, 0, events_, 1024, nullptr);
+    int ret = 0;
+    if(timeout < 0) {
+        ret = kevent(kqfd_, NULL, 0, events_, 1024, NULL);
+    }else {
+        struct timespec time;
+        time.tv_sec = timeout / 1000;
+        time.tv_nsec = timeout - time.tv_sec * 1000;
+        ret = kevent(kqfd_, NULL, 0, events_, 1024, &time);
+    }
+    
     Time now = Time::Now();
     
     if(ret > 0) {
@@ -61,10 +68,16 @@ void KqueuePoller::UpdateEvent(Event* event) {
     if(event->events_ & READ_EVENT) {
         EV_SET(&ke, event->fd_, EVFILT_READ, EV_ADD, 0, 0, NULL);
         kevent(kqfd_, &ke, 1, NULL, 0, NULL);
+    }else {
+        EV_SET(&ke, event->fd_, EVFILT_READ, EV_DELETE, 0, 0, NULL);
+        kevent(kqfd_, &ke, 1, NULL, 0, NULL);
     }
     
     if(event->events_ & WRITE_EVENT) {
         EV_SET(&ke, event->fd_, EVFILT_WRITE, EV_ADD, 0, 0, NULL);
+        kevent(kqfd_, &ke, 1, NULL, 0, NULL);
+    }else {
+        EV_SET(&ke, event->fd_, EVFILT_WRITE, EV_DELETE, 0, 0, NULL);
         kevent(kqfd_, &ke, 1, NULL, 0, NULL);
     }
     events_map_[event->fd_] = event;
@@ -90,5 +103,3 @@ void KqueuePoller::RemoveEvent(Event* event) {
 
 }
 }
-
-//#endif

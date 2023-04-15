@@ -36,7 +36,6 @@ void PollPoller::UpdateEvent(Event* event) {
 
 void PollPoller::RemoveEvent(Event* event) {
     int idx = event->index_;
-    //std::cout << "removeEvent" << std::endl;
     if(idx >= 0 && idx < pollfds_.size()) {
         events_map_.erase(event->fd_);
         if((size_t)idx == pollfds_.size()-1) {
@@ -48,9 +47,6 @@ void PollPoller::RemoveEvent(Event* event) {
             events_map_[lastFd]->index_  = idx;
             pollfds_.pop_back();
         }
-        //::close(event->fd());
-        //要不要delete
-       // delete event;
     }
 
 }
