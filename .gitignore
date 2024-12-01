@@ -2,6 +2,7 @@
 bin-debug/
 bin-release/
 .vscode/
+build/
 [Oo]bj/
 [Bb]in/
 
