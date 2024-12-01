@@ -1,3 +1,4 @@
+/*
 #include "mysql.h"
 #include "logger.h"
 
@@ -95,7 +96,7 @@ bool MySQL::Use(const std::string &dbname) {
  "1"      "Alice"   "100"
  "2"      "Bob"     "200"
  "3"      "Carol"   "300"
- */
+
 MySQLReplyPtr MySQL::Cmd(const char *format, ...) {
     va_list ap;
     va_start(ap, format);
@@ -149,3 +150,4 @@ bool MySQLPool::Init() {
 
 }
 }
+*/

@@ -1,6 +1,7 @@
 #ifndef CWEB_DATABASE_MYSQL_H_
 #define CWEB_DATABASE_MYSQL_H_
 
+/*
 #include <mysql/mysql.h>
 #include <string>
 #include <memory>
@@ -65,5 +66,5 @@ typedef cweb::util::Singleton<MySQLPool> MySQLPoolSingleton;
 
 }
 }
-
+*/
 #endif
