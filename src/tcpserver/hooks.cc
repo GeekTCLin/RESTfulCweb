@@ -9,6 +9,9 @@
 #include <iostream>
 #include <sys/uio.h>
 #include "event.h"
+
+#define COROUTINE       // 主动设置协程，方便看代码
+
 #ifdef COROUTINE
 #include "coroutine.h"
 #include "co_event.h"
@@ -157,6 +160,7 @@ unsigned int sleep(unsigned int seconds) {
     CoEventLoop* TLSCoEventLoop = (CoEventLoop*)pthread_getspecific(util::PthreadKeysSingleton::GetInstance()->TLSEventLoop);
     Coroutine* co = TLSCoEventLoop->GetCurrentCoroutine();
     TLSCoEventLoop->AddTimer(seconds, [TLSCoEventLoop, co](){
+        // 注册协程唤醒操作
         TLSCoEventLoop->AddCoroutineWithState(co);
     });
     TLSCoEventLoop->GetCurrentCoroutine()->SetState(Coroutine::HOLD);

@@ -18,6 +18,7 @@ void CoEventLoop::Run() {
     createWakeupfd();
     pthread_setspecific(util::PthreadKeysSingleton::GetInstance()->TLSEventLoop, this);
     pthread_setspecific(util::PthreadKeysSingleton::GetInstance()->TLSMemoryPool, memorypool_.get());
+    // 主线程的 执行体为 loop 循环
     main_coroutine_ = new Coroutine(std::bind(&CoEventLoop::loop, this));
     loop();
 }
@@ -37,6 +38,8 @@ void CoEventLoop::AddTaskWithState(Functor cb, bool stateful) {
     }
 }
 
+// stateful 默认为true，一般情况下 加入 stateful_ready_coroutines_ 链表
+// 不知道 stateless_ready_coroutines_ 链表的作用
 void CoEventLoop::AddCoroutineWithState(Coroutine* co, bool stateful) {
     {
         std::unique_lock<std::mutex> lock(mutex_);
@@ -112,16 +115,23 @@ void CoEventLoop::loop() {
         handleActiveEvents(now);
         handleTimeoutTimers();
         
+        // 取出首个协程
         running_coroutine_ = running_coroutines_.Front();
 
         if(!running_coroutine_) {
+            // running_coroutines_ 长度为0，将 ready 状态的协程 移动至 runing
             moveReadyCoroutines();
             running_coroutine_ = running_coroutines_.Front();
         }
         
         while(running_coroutine_ && running_) {
             running_coroutine_->SetLoop(std::dynamic_pointer_cast<CoEventLoop>(shared_from_this()));
+            // 主协程 切换 至 子协程
+            // running_coroutine_ 会设置 状态为 EXEC
+            // 保存 主协程 loop 函数栈， 替换为 子协程 fn 方法栈
             main_coroutine_->SwapTo(running_coroutine_);
+            
+            // 这里应该是 子协程 替换回 主协程 main_coroutine_ 才继续执行
             switch (running_coroutine_->State()) {
                 case Coroutine::State::EXEC: {
                     next_coroutine_ = running_coroutines_.Next(running_coroutine_);
@@ -134,6 +144,7 @@ void CoEventLoop::loop() {
                 }
                     break;
                 case Coroutine::State::HOLD: {
+                    // 将当前协程挂起，加入 hold_coroutines_
                     running_coroutines_.Erase(running_coroutine_);
                     hold_coroutines_.Push(running_coroutine_);
                     next_coroutine_ = running_coroutines_.Next(running_coroutine_);
@@ -143,7 +154,6 @@ void CoEventLoop::loop() {
                     }
                     running_coroutine_ = next_coroutine_;
                 }
-                    
                     break;
                     
                 case Coroutine::State::TERM:
@@ -184,6 +194,7 @@ void CoEventLoop::handleTimeoutTimers() {
     }
 }
 
+// 将 stateful_ready_coroutines_ 协程 加入 running_coroutines_
 void CoEventLoop::moveReadyCoroutines() {
     std::unique_lock<std::mutex> lock(mutex_);
     size_t size = stateful_ready_coroutines_.Size();

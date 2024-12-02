@@ -17,10 +17,10 @@ class Coroutine : public util::LinkedListNode {
     
 public:
     enum State {
-        READY,
-        HOLD,
-        EXEC,
-        TERM
+        READY,          // 初始状态
+        HOLD,           // 挂起，加入hold_coroutines_
+        EXEC,           // 执行
+        TERM            // 执行结束
     };
     
     Coroutine(std::function<void()> func, std::shared_ptr<CoEventLoop> loop = nullptr);
@@ -35,9 +35,9 @@ public:
     
 private:
     enum State state_ = READY;
-    CoroutineContext* context_;
-    std::function<void()> func_;
-    std::shared_ptr<CoEventLoop> loop_;
+    CoroutineContext* context_;             // 协程上下文
+    std::function<void()> func_;            // 执行的方法体
+    std::shared_ptr<CoEventLoop> loop_;     // 绑定的循环对象
     CoEvent* event_ = nullptr;
     void run();
     static void coroutineFunc(void* vp);

@@ -20,7 +20,7 @@ private:
     Coroutine* next_coroutine_ = nullptr;
     Coroutine* main_coroutine_ = nullptr;
 
-    std::unordered_map<int, CoEvent*> events_;
+    std::unordered_map<int, CoEvent*> events_;      // <fd : CoEvent*>
     util::LinkedList<Coroutine> running_coroutines_;
     util::LinkedList<Coroutine> hold_coroutines_;
     util::LinkedList<Coroutine> stateful_ready_coroutines_;
