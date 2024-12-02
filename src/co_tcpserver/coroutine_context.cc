@@ -51,6 +51,35 @@ void CoroutineContext::Init(size_t size, void (*fn)(void*), const void* vp) {
     regs[RET] = fn; //函数返回地址
 }
 
+// from rdi 寄存器
+// to   rsi 寄存器
+/**
+ * 
+ *  leaq (%rsp), %rax
+    movq %rax, 56(%rdi)     // rax 写入 regs[7] 即 RSP
+    movq %rbx, 48(%rdi)     // rbx 写入 regs[6] 即 RBX
+    movq 0(%rax), %rax
+    movq %rax, 40(%rdi)     // 记录 regs[RET]
+    movq %rbp, 32(%rdi)     // 记录 regs[RBP]
+    movq %r12, 24(%rdi)     // 记录 regs[R12]
+    movq %r13, 16(%rdi)     // 记录 regs[R13]
+    movq %r14, 8(%rdi)      // 记录 regs[R14]
+    movq %r15, (%rdi)       // 记录 regs[R15]
+    xorq %rax, %rax
+
+    movq 32(%rsi), %rbp     // 取出 regs[RBP]
+    movq 56(%rsi), %rsp     // 取出 regs[RSP]
+    movq (%rsi), %r15
+    movq 8(%rsi), %r14
+    movq 16(%rsi), %r13
+    movq 24(%rsi), %r12
+    movq 48(%rsi), %rbx
+    movq 64(%rsi), %rdi
+    leaq 8(%rsp), %rsp
+    pushq 40(%rsi)
+
+    ret
+ */
 void CoroutineContext::ContextSwap(CoroutineContext *from, CoroutineContext *to) {
     context_swap(from, to);
 }
