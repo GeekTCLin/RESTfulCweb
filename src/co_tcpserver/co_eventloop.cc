@@ -99,6 +99,7 @@ Coroutine* CoEventLoop::GetCurrentCoroutine() {
     return running_coroutine_;
 }
 
+// 唤醒协程
 void CoEventLoop::NotifyCoroutineReady(Coroutine *co) {
     assert(isInLoopThread());
     hold_coroutines_.Erase(co);
@@ -115,7 +116,7 @@ void CoEventLoop::loop() {
         handleActiveEvents(now);
         handleTimeoutTimers();
         
-        // 取出首个协程
+        // 取出可执行的协程
         running_coroutine_ = running_coroutines_.Front();
 
         if(!running_coroutine_) {
