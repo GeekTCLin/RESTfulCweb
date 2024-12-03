@@ -1,15 +1,18 @@
 #include "coroutine_context.h"
 #include <string.h>
 
-#define R15 0
-#define R14 1
-#define R13 2
-#define R12 3
+#define R15 0       // callee
+#define R14 1       // callee
+#define R13 2       // callee
+#define R12 3       // callee
 #define RBP 4       // 栈帧指针，标识当前栈帧的起始位置
-#define RET 5
-#define RBX 6
+#define RET 5       // 
+#define RBX 6       // 任意寄存器 属于callee
 #define RSP 7       // 栈顶指针
 #define RDI 8       // 首个函数参数
+
+
+// 还有一个比较重要的 %rip 指令寄存器 存储下一条指令
 
 namespace cweb {
 namespace tcpserver {
